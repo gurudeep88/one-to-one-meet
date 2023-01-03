@@ -10,12 +10,15 @@ import {
 import { useEffect, useState } from "react";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import MuiSelect from "./MuiSelect";
+import MuiStatus from "./MuiStatus";
 
 const MuiTable = () => {
-  const [names, setNames] = useState([]);
-  const handleChange = (e) => {
-    setNames(e.target.value);
-  };
+  const [query, setQuery] = useState({
+    qname: [],
+    qcompany: [],
+    qindustry: [],
+    qstatus: [],
+  });
 
   const tableData = [
     {
@@ -23,7 +26,7 @@ const MuiTable = () => {
       name: "Collin Pett",
       company: "Tekfly",
       industry: "Electronics",
-      status: false,
+      status: "Inactive",
       "total projects": 62,
       "active projects": 61,
       "total sessions": 9,
@@ -36,8 +39,8 @@ const MuiTable = () => {
       id: 2,
       name: "Pren Evamy",
       company: "Livepath",
-      industry: "Beauty",
-      status: true,
+      industry: "Gaming",
+      status: "Active",
       "total projects": 58,
       "active projects": 10,
       "total sessions": 29,
@@ -51,7 +54,7 @@ const MuiTable = () => {
       name: "Siegfried Golding",
       company: "Youopia",
       industry: "Music",
-      status: false,
+      status: "Inactive",
       "total projects": 1,
       "active projects": 88,
       "total sessions": 47,
@@ -65,7 +68,7 @@ const MuiTable = () => {
       name: "Gawain Markussen",
       company: "Trunyx",
       industry: "Tools",
-      status: false,
+      status: "Inactive",
       "total projects": 15,
       "active projects": 45,
       "total sessions": 38,
@@ -79,7 +82,7 @@ const MuiTable = () => {
       name: "Ernesto Clarridge",
       company: "Mita",
       industry: "Computers",
-      status: false,
+      status: "Inactive",
       "total projects": 90,
       "active projects": 29,
       "total sessions": 14,
@@ -93,7 +96,7 @@ const MuiTable = () => {
       name: "Dore Lyes",
       company: "Skimia",
       industry: "Home",
-      status: false,
+      status: "Inactive",
       "total projects": 87,
       "active projects": 93,
       "total sessions": 46,
@@ -107,7 +110,7 @@ const MuiTable = () => {
       name: "Brigitta Phipps",
       company: "Centizu",
       industry: "Books",
-      status: false,
+      status: "Inactive",
       "total projects": 31,
       "active projects": 16,
       "total sessions": 40,
@@ -121,7 +124,7 @@ const MuiTable = () => {
       name: "Vidovik Kerbey",
       company: "Jabberbean",
       industry: "Clothing",
-      status: true,
+      status: "Active",
       "total projects": 20,
       "active projects": 55,
       "total sessions": 30,
@@ -135,7 +138,7 @@ const MuiTable = () => {
       name: "Clerc Pearsey",
       company: "Flashdog",
       industry: "Automotive",
-      status: true,
+      status: "Active",
       "total projects": 95,
       "active projects": 49,
       "total sessions": 71,
@@ -149,7 +152,7 @@ const MuiTable = () => {
       name: "Agnesse Gittis",
       company: "Photospace",
       industry: "Movies",
-      status: true,
+      status: "Active",
       "total projects": 30,
       "active projects": 11,
       "total sessions": 59,
@@ -158,11 +161,22 @@ const MuiTable = () => {
       "Media Usage": 10,
       "Video Usage": 57,
     },
+    {
+      id: 11,
+      name: "Pren Evamy",
+      company: "Sariska",
+      industry: "Beauty",
+      status: "Active",
+      "total projects": 58,
+      "active projects": 10,
+      "total sessions": 29,
+      "Video Minutes": 57,
+      "audio Minutes": 22,
+      "Media Usage": 54,
+      "Video Usage": 20,
+    },
   ];
   const headers = [
-    "Company",
-    "Industry",
-    "Status",
     "Total Projects",
     "Active Projets",
     "Total Sessions",
@@ -172,27 +186,83 @@ const MuiTable = () => {
     "Video Usage",
   ];
   const [data, setData] = useState(tableData);
-  const helper = (names) => {
-    if (names.length === 0) {
-      setData(tableData);
-      return;
-    }
+  // const helper = (names) => {
+  //   if (names.length === 0) {
+  //     setData(tableData);
+  //     return;
+  //   }
+  //   const filteredData = [];
+  //   names.forEach((nameToFilter) => {
+  //     const result = tableData.filter((temp) => {
+  //       return temp.name === nameToFilter;
+  //     });
+  //     filteredData.push(...result);
+  //   });
+
+  //   //console.log(filteredData);
+  //   setData(filteredData);
+  // };
+  const helper = (query) => {
+    console.log(query);
+    let a = func1(query.qname, tableData);
+    let b = func2(query.qcompany, a);
+    let c = func3(query.qindustry, b);
+    let d = func4(query.qstatus, c);
+    setData(d);
+  };
+
+  let func1 = (names, x) => {
+    if (names.length === 0) return x;
     const filteredData = [];
     names.forEach((nameToFilter) => {
-      const result = tableData.filter((temp) => {
+      const result = x.filter((temp) => {
         return temp.name === nameToFilter;
       });
       filteredData.push(...result);
     });
-
-    //console.log(filteredData);
-    setData(filteredData);
+    return filteredData;
   };
+
+  let func2 = (names, x) => {
+    if (names.length === 0) return x;
+    const filteredData = [];
+    names.forEach((nameToFilter) => {
+      const result = x.filter((temp) => {
+        return temp.company === nameToFilter;
+      });
+      filteredData.push(...result);
+    });
+    return filteredData;
+  };
+
+  let func3 = (names, x) => {
+    if (names.length === 0) return x;
+    const filteredData = [];
+    names.forEach((nameToFilter) => {
+      const result = x.filter((temp) => {
+        return temp.industry === nameToFilter;
+      });
+      filteredData.push(...result);
+    });
+    return filteredData;
+  };
+
+  let func4 = (names, x) => {
+    if (names.length === 0) return x;
+    const filteredData = [];
+    names.forEach((nameToFilter) => {
+      const result = x.filter((temp) => {
+        return temp.status === nameToFilter;
+      });
+      filteredData.push(...result);
+    });
+    return filteredData;
+  };
+
   useEffect(() => {
-    console.log(names);
-    //setData(filteredData);
-    helper(names);
-  }, [names]);
+    helper(query);
+  }, [query]);
+
   return (
     <TableContainer component={Paper}>
       <Table aria-label="simple table">
@@ -209,8 +279,62 @@ const MuiTable = () => {
           <TableRow>
             <TableCell align="center">
               Name <KeyboardArrowDownIcon />{" "}
-              <MuiSelect names={names} handleChange={handleChange} />
+              <MuiSelect
+                arr={data}
+                property="name"
+                value={query.qname}
+                handleChange={(e) =>
+                  setQuery({
+                    ...query,
+                    qname: e.target.value,
+                  })
+                }
+              />
             </TableCell>
+
+            <TableCell align="center">
+              Company <KeyboardArrowDownIcon />{" "}
+              <MuiSelect
+                arr={data}
+                value={query.qcompany}
+                property="company"
+                handleChange={(e) =>
+                  setQuery({
+                    ...query,
+                    qcompany: e.target.value,
+                  })
+                }
+              />
+            </TableCell>
+
+            <TableCell align="center">
+              Industry <KeyboardArrowDownIcon />{" "}
+              <MuiSelect
+                arr={data}
+                property="industry"
+                value={query.qindustry}
+                handleChange={(e) =>
+                  setQuery({
+                    ...query,
+                    qindustry: e.target.value,
+                  })
+                }
+              />
+            </TableCell>
+
+            <TableCell align="center">
+              Status <KeyboardArrowDownIcon />{" "}
+              <MuiStatus
+                value={query.qstatus}
+                handleChange={(e) =>
+                  setQuery({
+                    ...query,
+                    qstatus: e.target.value,
+                  })
+                }
+              />
+            </TableCell>
+
             {headers.map((item) => (
               <TableCell align="center">{item}</TableCell>
             ))}
@@ -222,9 +346,7 @@ const MuiTable = () => {
               <TableCell align="center">{row.name}</TableCell>
               <TableCell align="center">{row.company}</TableCell>
               <TableCell align="center">{row.industry}</TableCell>
-              <TableCell align="center">
-                {row.status ? "Active" : "Inactive"}
-              </TableCell>
+              <TableCell align="center">{row.status}</TableCell>
               <TableCell align="center">{row["total projects"]}</TableCell>
               <TableCell align="center">{row["active projects"]}</TableCell>
               <TableCell align="center">{row["total sessions"]}</TableCell>

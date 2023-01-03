@@ -1,37 +1,34 @@
-import {Box, TextField, MenuItem} from '@mui/material'
-import { useState, useEffect } from 'react'
+import { Box, TextField, MenuItem } from "@mui/material";
+import { useState, useEffect } from "react";
 
-import React from 'react'
+import React from "react";
 
-const MuiSelect = ({names, handleChange}) => {
-    //const [names, setName] = useState([]);
-    
-    // const handleChange = (e) => {
-    //     //console.log(names);
-    //     setName(e.target.value);
-    //     console.log(names);
-    // }
-    // useEffect(() => {
-    //     setName(names);
-    // },[names])
+const MuiSelect = ({ value, handleChange, arr, property }) => {
+  //console.log(arr);
+
   return (
-    <Box width='250px'>
-        <TextField
-            label='Search'
-            select
-            value={names}
-            fullWidth
-            onChange = {handleChange}
-            SelectProps={{
-                multiple : true,
-            }}
-        >
-            <MenuItem value="Dore Lyes">Dore Lyes</MenuItem>
-            <MenuItem value="Clerc Pearsey">Clerc Pearsey</MenuItem>
-            <MenuItem value="Pren Evamy">Pren Evamy</MenuItem>
-        </TextField>
+    <Box width="150px">
+      <TextField
+        label="Search"
+        select
+        value={value}
+        fullWidth
+        onChange={handleChange}
+        SelectProps={{
+          multiple: true,
+        }}
+      >
+        {/* <MenuItem value="Dore Lyes">Dore Lyes</MenuItem>
+        <MenuItem value="Clerc Pearsey">Clerc Pearsey</MenuItem>
+        <MenuItem value="Pren Evamy">Pren Evamy</MenuItem> */}
+        {arr.map((each) => (
+          <MenuItem key={each.id} value={each[property]}>
+            {each[property]}
+          </MenuItem>
+        ))}
+      </TextField>
     </Box>
-  )
-}
+  );
+};
 
-export default MuiSelect
+export default MuiSelect;
