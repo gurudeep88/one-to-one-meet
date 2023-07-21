@@ -1,13 +1,16 @@
-import './App.css';
-import MuiTable from './components/MuiTable';
-//import Sample from './components/Sample';
+import React, { Fragment } from "react";
+import {Route, Switch} from 'react-router-dom';
+import Leave from "./views/Leave";
+import Home from "./views/Home";
 
 function App() {
   return (
-    <div className="App">
-      <MuiTable />
-      {/* <Sample /> */}
-    </div>
+    <Fragment>
+      <Switch>
+        <Route exact path='/leave' component={Leave} />
+        <Route exact path='/' component={Home} />
+      </Switch>
+    </Fragment>
   );
 }
 
