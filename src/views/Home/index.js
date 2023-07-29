@@ -43,8 +43,6 @@ const Home = () => {
         tracks.forEach(track => dispatch(addLocalTrack(track)));
     }
 
-
-console.log('tracks ', localTracks)
   return (
     <div style={{minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
         <Box sx={{textAlign: 'center'}}>

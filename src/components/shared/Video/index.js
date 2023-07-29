@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react'
 
 const Video = (props) => {
-    const {track, height, width, minHeight, minWidth} = props;
+    const {track, height, width, minHeight, minWidth, isPresenter} = props;
     const ref = useRef(null);
     useEffect(()=>{
         track?.attach(ref.current)
@@ -16,7 +16,12 @@ const Video = (props) => {
         ref={ref}
         playsInline="1"
         autoPlay="1"
-        style={{width, height, transform: 'scaleX(-1)', minWidth, minHeight}}
+        style={{
+          width, 
+          height, 
+          transform: isPresenter ? 'initial' : 'scaleX(-1)', 
+          minWidth, 
+          minHeight}}
     />
   )
 }

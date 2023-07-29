@@ -7,7 +7,9 @@ import { Box, makeStyles } from '@material-ui/core';
 import { color } from '../../assets/styles/_color';
 import GridLayout from '../../components/meeting/GridLayout';
 import ActionButtons from '../../components/meeting/ActionButtons';
-import { setRaiseHand } from '../../store/actions/layout';
+import { setPresenter, setRaiseHand } from '../../store/actions/layout';
+import { showNotification } from '../../store/actions/notification';
+import SnackbarBox from '../../components/shared/Snackbar';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -49,12 +51,20 @@ const Meeting = () => {
     }
     
     //to save local participant properties into store or to show notification to self
-    // conference.getParticipantsWithoutHidden().forEach(participant => {
-    //   console.log('raise start enum', participant)
-    //   if(participant._properties?.handraise === 'start'){
-    //     dispatch(setRaiseHand({raiseHand: true, participantId: participant._id}))
-    //   }
-    // })
+    conference.getParticipantsWithoutHidden().forEach(participant => {
+      if(participant._properties?.handraise === 'start'){
+        dispatch(setRaiseHand({raiseHand: true, participantId: participant._id}))
+      }
+      if(participant._properties?.presenting === 'start'){
+        dispatch(
+          showNotification({
+            autoHide: true,
+            message: `Screen sharing is being presenting by ${participant._identity?.user?.name}`,
+          })
+        );
+        dispatch(setPresenter({ participantId: participant._id, presenter: true }));
+      }
+    })
 
     // let other participant know that the remote participant have change his local property. and the local participant can 
     // show on his end this by saving the state into his side of reducer.
@@ -66,12 +76,23 @@ const Meeting = () => {
         if(key === 'handraise' && newValue === 'stop'){
           dispatch(setRaiseHand({raiseHand: false, participantId: participant._id}))
         }
+        if(key === 'presenting' && newValue === 'start'){
+          dispatch(
+            showNotification({
+              autoHide: true,
+              message: `Screen sharing started by ${participant._identity?.user?.name}`,
+            })
+          );
+          dispatch(setPresenter({presenter: true, participantId: participant._id}))
+        }
+        if(key === 'presenting' && newValue === 'stop'){
+          dispatch(setPresenter({presenter: false, participantId: participant._id}))
+        }
 
     })
     //add conference event listener
 
     conference.addEventListener(SariskaMediaTransport.events.conference.TRACK_REMOVED, (track)=>{
-      console.log('track_removed', track);
       dispatch(removeRemoteTrack(track));
     })
 
@@ -141,6 +162,7 @@ const Meeting = () => {
     <Box className={classes.root}>
       <GridLayout dominantSpeakerId={dominantSpeakerId} />
       <ActionButtons dominantSpeakerId={dominantSpeakerId} />
+      <SnackbarBox notification={notification} />
     </Box>
   )
 }

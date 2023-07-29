@@ -8,11 +8,16 @@ import VideocamIcon from '@material-ui/icons/Videocam';
 import VideocamOffIcon from '@material-ui/icons/VideocamOff';
 import PanToolIcon from "@material-ui/icons/PanTool";
 import CallEndIcon from "@material-ui/icons/CallEnd";
-import { localTrackMutedChanged } from '../../../store/actions/track';
+import ScreenShareIcon from "@material-ui/icons/ScreenShare";
+import StopScreenShareIcon from '@material-ui/icons/StopScreenShare';
+import { addLocalTrack, localTrackMutedChanged, removeLocalTrack } from '../../../store/actions/track';
 import { color } from '../../../assets/styles/_color';
 import classNames from 'classnames';
 import { clearAllReducers } from '../../../store/actions/conference';
 import { refreshPage } from '../../../utils';
+import SariskaMediaTransport from 'sariska-media-transport/dist/esm/SariskaMediaTransport';
+import { showNotification } from '../../../store/actions/notification';
+import { setPresenter } from '../../../store/actions/layout';
 
 const useStyles = makeStyles((theme) => ({
   icon: {
@@ -54,6 +59,7 @@ const useStyles = makeStyles((theme) => ({
 const ActionButtons = ({dominantSpeakerId}) => {
   const classes = useStyles();
   const [raiseHand, setRaiseHand] = useState(false);
+  const [presenting, setPresenting] = useState(false);
   const conference = useSelector((state) => state.conference);
   const localTracks = useSelector((state) => state.localTrack);
   const audioTrack = localTracks.find(track => track?.isAudioTrack());
@@ -89,6 +95,50 @@ const ActionButtons = ({dominantSpeakerId}) => {
   const stopRaiseHand = () => {
     conference.setLocalParticipantProperty("handraise", "stop");
     setRaiseHand(false);
+  }
+
+  const shareScreen = async() => {
+    let desktopTrack;
+    try {
+      //create a new track of videoType = 'desktop'
+      const tracks = await SariskaMediaTransport.createLocalTracks({devices: ["desktop"], resolution: 720});
+      //filter the track and assign to varible
+      desktopTrack = tracks?.find(track => track?.videoType === 'desktop');
+    }catch(error){
+      dispatch(showNotification({
+        message: "Oops, Something wrong with screen sharing permissions. Try reload",
+        severity: 'warning',
+        autoHide: true
+      }))
+      console.log('error in starting screen share');
+      return;
+    }
+    //add the local desktop track to conference
+    await conference.addTrack(desktopTrack);
+    desktopTrack.addEventListener(SariskaMediaTransport.events.track.LOCAL_TRACK_STOPPED, async()=>{
+       stopPresenting();
+    })
+    //set setLocalParticipantProperty to the participant in conference
+    conference.setLocalParticipantProperty("presenting", "start");
+    //add track to redux state
+    dispatch(addLocalTrack(desktopTrack));
+    // make participant presenter redux state as true
+    dispatch(setPresenter({participantId: conference.myUserId(), presenter: true}));
+    setPresenting(true);
+  }
+
+  const stopPresenting = async() => {
+    //get the desktop track
+    const desktopTrack = localTracks.find(track => track?.videoType === 'desktop');
+    //remove local desktop track from conference
+    await conference.removeTrack(desktopTrack);
+    // make local participant presenter redux state as false
+    dispatch(setPresenter({participantId: conference.myUserId(), presenter: false}));
+    //remove local track from redux state
+    dispatch(removeLocalTrack(desktopTrack));
+    //remove setLocalParticipantProperty to the participant in conference
+    conference.setLocalParticipantProperty("presenting", "stop");
+    setPresenting(false);
   }
 
   const leaveConference = async() => {
@@ -138,6 +188,22 @@ const ActionButtons = ({dominantSpeakerId}) => {
               :
                 <PanToolIcon
                   onClick={startRaiseHand}
+                  className={classNames(classes.icon)}
+                  style={{fontSize: '18px', padding: '11px'}}
+                />
+            }
+        </Tooltip>
+        <Tooltip title = {presenting ? "Stop Presenting" : "Share Screen"}>
+            {
+              presenting ?
+                <StopScreenShareIcon
+                  onClick={stopPresenting}
+                  className={classNames(classes.active, classes.icon)}
+                  style={{fontSize: '18px', padding: '11px'}}
+                />
+              :
+                <ScreenShareIcon
+                  onClick={shareScreen}
                   className={classNames(classes.icon)}
                   style={{fontSize: '18px', padding: '11px'}}
                 />

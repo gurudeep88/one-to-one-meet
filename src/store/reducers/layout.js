@@ -37,7 +37,6 @@ export const layout = (state = initialState, action) => {
         case SET_HAND_RAISE: //for remote user to know about who have raised hands
             if (action.payload.raiseHand) {
                 state.raisedHandParticipantIds[action.payload.participantId] = action.payload.participantId;
-                console.log('state re', state)
             } else {
                 delete state.raisedHandParticipantIds[action.payload.participantId]; 
             }

@@ -29,15 +29,18 @@ const useStyles = makeStyles(theme => ({
   }
 }))
 
-const VideoBox = ({tracks, height, width, minWidth, minHeight, localUserId, participant}) => {
+const VideoBox = ({tracks, height, width, minWidth, minHeight, localUserId, participant, isPresenter}) => {
   const classes = useStyles();
-  const videoTrack = tracks?.find(track => track?.isVideoTrack());
+  //adds video or desktop track
+  let videoTrack = isPresenter ?
+     tracks?.find(track => track?.getVideoType() === 'desktop')
+     : tracks?.find(track => track?.getType() === 'video');
   //for the remote participant to show the action of local participants on his side
   const {raisedHandParticipantIds} = useSelector(state => state.layout);
   const layout = useSelector(state => state.layout);
-  console.log('raisedHandParticipantIds', raisedHandParticipantIds, layout)
+  
   return (
-    <div>
+    <div style={{background: isPresenter && '#42424a'}}>
       {
         videoTrack?.isMuted() ? //to show video muted on remote side.
         <Box sx={{width, height, minHeight, minWidth, background: 'lightgray', display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
@@ -52,6 +55,7 @@ const VideoBox = ({tracks, height, width, minWidth, minHeight, localUserId, part
             track={videoTrack}
             minHeight={minHeight}
             minWidth={minWidth}
+            isPresenter={isPresenter}
         />
       }
       <Box>

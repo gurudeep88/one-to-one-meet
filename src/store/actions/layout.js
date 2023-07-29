@@ -24,7 +24,6 @@ export const setPinParticipant = (id, type) => {
 
 //will be fired on remote side when local user changes his local property
 export const setRaiseHand = (payload) => {
-    console.log('payoad s', payload)
     return {
         type: Constants.SET_HAND_RAISE,
         payload

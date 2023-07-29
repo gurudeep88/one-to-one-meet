@@ -18,6 +18,7 @@ const ParticipantGrid = ({dominantSpeakerId}) => {
     const conference = useSelector(state => state.conference);
     const localTracks = useSelector(state => state.localTrack);
     const remoteTracks = useSelector(state => state.remoteTrack);
+    const layout = useSelector(state => state.layout);
     const localUser = conference.getLocalUser();
 
     //all tracks
@@ -25,11 +26,13 @@ const ParticipantGrid = ({dominantSpeakerId}) => {
 
     //all participants
     const participants = [...conference.getParticipantsWithoutHidden(), {_identity: {user: localUser}, _id: localUser.id}];
+    // to add desktop track to participants
+    participants.filter(participant => layout.presenterParticipantIds?.indexOf(participant._id) >= 0).forEach(p => {
+        participants.push({...p, presenter: true});
+    })
 
     let { viewportWidth, viewportHeight } = useWindowResize(participants.length);
     
-    console.log('conference.getParticipantsWithoutHidden()', conference?.getParticipantsWithoutHidden())
-
   return (
     <Box className={classes.root}>
         <Grid container item style={{gap: '20px'}}>
@@ -38,7 +41,7 @@ const ParticipantGrid = ({dominantSpeakerId}) => {
                     return (
                         (tracks[participant?._id] || participant?._id)
                         ?
-                            <Grid item style={{padding: '10px'}}>
+                            <Grid item style={{padding: '10px', background: 'aliceblue'}}>
                                 <VideoBox 
                                     tracks = {tracks[participant?._id]} 
                                     height = {'180px'} 
@@ -47,6 +50,7 @@ const ParticipantGrid = ({dominantSpeakerId}) => {
                                     minHeight = {'180px'}
                                     participant={participant?._identity?.user}
                                     localUserId={conference?.myUserId()}
+                                    isPresenter = {participant?.presenter ? true : false} // for displaying desktop track
                                 />
                             </Grid>
                         :
