@@ -7,14 +7,14 @@ const initialState  = {
     mode: EXIT_FULL_SCREEN_MODE, //default mode,
     pinnedParticipant: {},
     presenterParticipantIds: [],
-    raisedHandParticipantIds: {},
+    raisedHandParticipantIds: {}, //for remote user to know about who have raised hands
     disconnected: null,
     resolution: {},
     presentationType: null,
     moderator: {},
 };
 
-export const layoutInitialState  = { ... initialState };
+export const layoutInitialState  = { ...initialState };
 
 export const layout = (state = initialState, action) => {
     switch (action.type) {
@@ -34,9 +34,10 @@ export const layout = (state = initialState, action) => {
         case SET_DISCONNECTED:
             state.disconnected = action.payload;
             return {...state};
-        case SET_HAND_RAISE:
+        case SET_HAND_RAISE: //for remote user to know about who have raised hands
             if (action.payload.raiseHand) {
                 state.raisedHandParticipantIds[action.payload.participantId] = action.payload.participantId;
+                console.log('state re', state)
             } else {
                 delete state.raisedHandParticipantIds[action.payload.participantId]; 
             }

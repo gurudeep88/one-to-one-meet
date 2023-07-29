@@ -26,8 +26,7 @@ export const profile = (state = initialState, action) => {
             state[action.payload.key] = action.payload.value;
             return {...state};
         case SET_MEETING_TITLE:
-            const {meetingTitle} = action.payload;
-            state.meetingTitle = meetingTitle;
+            state.meetingTitle =action.payload.meetingTitle;
             return {...state};
         case SET_GOOGLE_API_STATE:
             state.googleAPIState = action.payload;

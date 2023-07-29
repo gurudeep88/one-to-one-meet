@@ -49,7 +49,7 @@ export function createDeferred() {
     return deferred;
 }
 
-export async function getToken(profile, name, avatarColor) {
+export async function getToken( profile, name, avatarColor) {
     const body = {
         method: "POST",
         headers: {
@@ -578,4 +578,8 @@ export function formatBytes(bytes) {
 
 export const getParticipants = (conference, localUser) => {
     return [...conference.getParticipantsWithoutHidden(), { _identity: { user: localUser }, _id: localUser.id }]
+}
+
+export const refreshPage = () => {
+    window.location.reload();
 }
