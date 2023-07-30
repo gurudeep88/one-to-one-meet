@@ -49,7 +49,7 @@ export function createDeferred() {
     return deferred;
 }
 
-export async function getToken( profile, name, avatarColor) {
+export async function getToken( profile, name, isModerator, avatarColor) {
     const body = {
         method: "POST",
         headers: {
@@ -61,7 +61,8 @@ export async function getToken( profile, name, avatarColor) {
                 id: profile.id,
                 avatar: avatarColor,
                 name: name,
-                email: profile.email
+                email: profile.email,
+                moderator: isModerator
             },
             exp: "48 hours"
         })

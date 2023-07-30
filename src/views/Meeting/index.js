@@ -100,6 +100,9 @@ const Meeting = () => {
       if(track.isLocal()){
         return;
       }
+      setTimeout(()=> {
+        console.log('TRACK_ADDED', conference?.getRole())
+      }, 60000)
       dispatch(addRemoteTrack(track));
     })
 

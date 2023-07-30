@@ -84,7 +84,7 @@ const handleSubmit = async(e) => {
   }
 
   //get token
-  const token = await getToken(profile, state.userName);
+  const token = await getToken(profile, state.userName, state.userName === 'guru' ? true : false);
   //create connection
   const connection = await new SariskaMediaTransport.JitsiConnection(
     token,
