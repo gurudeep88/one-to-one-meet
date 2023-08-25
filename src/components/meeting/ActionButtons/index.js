@@ -1,6 +1,6 @@
 import { Box, makeStyles } from '@material-ui/core';
 import { Tooltip } from '@mui/material';
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import MicIcon from '@material-ui/icons/Mic';
 import MicOffIcon from '@material-ui/icons/MicOff';
@@ -10,6 +10,7 @@ import PanToolIcon from "@material-ui/icons/PanTool";
 import CallEndIcon from "@material-ui/icons/CallEnd";
 import ScreenShareIcon from "@material-ui/icons/ScreenShare";
 import StopScreenShareIcon from '@material-ui/icons/StopScreenShare';
+import AlbumIcon from "@material-ui/icons/Album";
 import { addLocalTrack, localTrackMutedChanged, removeLocalTrack } from '../../../store/actions/track';
 import { color } from '../../../assets/styles/_color';
 import classNames from 'classnames';
@@ -18,6 +19,8 @@ import { refreshPage } from '../../../utils';
 import SariskaMediaTransport from 'sariska-media-transport/dist/esm/SariskaMediaTransport';
 import { showNotification } from '../../../store/actions/notification';
 import { setPresenter } from '../../../store/actions/layout';
+import { authorizeDropbox } from '../../../utils/dropbox-apis';
+import { RECORDING_ERROR_CONSTANTS, s3 } from '../../../constants';
 
 const useStyles = makeStyles((theme) => ({
   icon: {
@@ -64,6 +67,9 @@ const ActionButtons = ({dominantSpeakerId}) => {
   const localTracks = useSelector((state) => state.localTrack);
   const audioTrack = localTracks.find(track => track?.isAudioTrack());
   const videoTrack = localTracks.find(track => track?.isVideoTrack());
+  const recordingSession = useRef();
+  const [features, setFeatures] = useState({});
+  let recordingPlatform = 's3';
 
   const dispatch = useDispatch();
 
@@ -141,6 +147,115 @@ const ActionButtons = ({dominantSpeakerId}) => {
     setPresenting(false);
   }
 
+  const startRecording = async() => {
+    if(features.recording){
+      return;
+    }
+    if(conference.getRole() === 'none'){
+      return dispatch(
+        showNotification({
+          severity: 'info',
+          autoHide: true,
+          message: 'You are not moderator!!'
+        })
+      )
+    }
+    // const response = await authorizeDropbox();
+    // if(!response?.token){
+    //   return dispatch(
+    //     showNotification({
+    //       severity: "error",
+    //       message: "Recording failed no dropbox token",
+    //     })
+    //   );
+    // }
+
+    // let dropBox = {
+    //   file_recording_metadata: {
+    //     upload_credentials: {
+    //       service_name: "dropbox",
+    //       token: response.token,
+    //       app_key: process.env.DROPBOX_API_KEY,
+    //       r_token: response.rToken
+    //     }
+    //   }
+    // }
+
+    const appData = s3;
+
+    dispatch(
+      showNotification({
+        severity: "info",
+        message: "Starting Recording",
+        autoHide: false,
+      })
+    );
+    const session = await conference.startRecording({
+      mode: SariskaMediaTransport.constants.recording.mode.FILE,
+      appData: JSON.stringify(s3)
+    })
+    console.log('first session', session);
+    recordingSession.current = session;
+  }
+
+  const stopRecording = async() => {
+    if(!features.recording){
+      return;
+    }
+    if (conference?.getRole() === "none") {
+      return dispatch(
+        showNotification({
+          severity: "info",
+          autoHide: true,
+          message: "You are not moderator!!",
+        })
+      );
+    }
+    await conference.stopRecording(localStorage.getItem('recording_session_id'))
+  }
+
+  const setFeatureType = (feature) => {
+    features[feature.key] = feature.value;
+    setFeatures({...features});
+  }
+
+  useEffect(()=>{
+    conference.getParticipantsWithoutHidden().forEach(item => {
+      if(item._properties?.recording){
+        setFeatureType({key: 'recording', value: true})
+      }
+    })
+    conference.addEventListener(
+      SariskaMediaTransport.events.conference.RECORDER_STATE_CHANGED, (data)=>{
+        if(data._status === 'on' && data._mode ==='file'){
+          conference.setLocalParticipantProperty("recording", true);
+          dispatch(
+            showNotification({ autoHide: true, message: "Recording started", severity: 'info' })
+          );
+          setFeatureType({key: "recording", value: true})
+          localStorage.setItem("recording_session_id", data?._sessionID)
+        }
+        if (data._status === "off" && data._mode === "file") {
+          conference.removeLocalParticipantProperty("recording");
+          dispatch(
+            showNotification({ autoHide: true, message: "Recording stopped" })
+          );
+          setFeatureType({ key: "recording", value: false });
+        }
+        if(data._mode === 'file' && data._error){
+          conference.removeLocalParticipantProperty('recording');
+          dispatch(
+            showNotification({
+              autoHide: true,
+              message: RECORDING_ERROR_CONSTANTS[data._error],
+            })
+          );
+          setFeatureType({key: 'recording', value: false})
+        }
+      }
+    )
+  },[])
+
   const leaveConference = async() => {
     dispatch(clearAllReducers());
       refreshPage();
@@ -204,6 +319,22 @@ const ActionButtons = ({dominantSpeakerId}) => {
               :
                 <ScreenShareIcon
                   onClick={shareScreen}
+                  className={classNames(classes.icon)}
+                  style={{fontSize: '18px', padding: '11px'}}
+                />
+            }
+        </Tooltip>
+        <Tooltip title = {features.recording ? "Stop Recording" : "Start Recording"}>
+            {
+              features.recording ?
+                <AlbumIcon
+                  onClick={stopRecording}
+                  className={classNames(classes.active, classes.icon)}
+                  style={{fontSize: '18px', padding: '11px'}}
+                />
+              :
+                <AlbumIcon
+                  onClick={startRecording}
                   className={classNames(classes.icon)}
                   style={{fontSize: '18px', padding: '11px'}}
                 />

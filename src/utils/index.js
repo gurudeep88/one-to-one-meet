@@ -1,9 +1,5 @@
 import { useLocation } from "react-router-dom";
 import {GENERATE_TOKEN_URL, GET_PRESIGNED_URL, ENTER_FULL_SCREEN_MODE} from "../constants";
-import linkifyHtml from 'linkify-html';
-import { SARISKA_MEET_APP_API_KEY } from "../config";
-
-const Compressor = require('compressorjs');
 
 export function useQuery() {
     return new URLSearchParams(useLocation().search);
@@ -49,20 +45,23 @@ export function createDeferred() {
     return deferred;
 }
 
-export async function getToken( profile, name, isModerator, avatarColor) {
+export async function getToken( profile, name, avatarColor) {
+    if(!process.env.REACT_APP_API_KEY){
+        return console.log('Kindly provide a valid api key in environment file')
+    }
     const body = {
         method: "POST",
         headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            apiKey: SARISKA_MEET_APP_API_KEY,
+            apiKey: process.env.REACT_APP_API_KEY,
             user: {
                 id: profile.id,
                 avatar: avatarColor,
                 name: name,
                 email: profile.email,
-                moderator: isModerator
+                moderator: profile.isModerator
             },
             exp: "48 hours"
         })
@@ -489,11 +488,6 @@ export const detectUpperCaseChar = (char) => {
     return char === char.toUpperCase() && char !== char.toLowerCase();
 }
 
-export const linkify=(inputText) =>{
-    const options = { defaultProtocol: 'https',   target: '_blank'};
-    return linkifyHtml(inputText, options);
-}
-
 export function encodeHTML(str){
     return str.replace(/([\u00A0-\u9999<>&])(.|$)/g, function(full, char, next) {
         if(char !== '&' || next !== '#'){
@@ -533,24 +527,6 @@ export function getPresignedUrl(params) {
             }).catch((error) => {
             reject(error)
         })
-    });
-}
-
-export function compressFile(file, type) {
-    return new Promise((resolve, reject) => {
-        if (type === "attachment") {
-            resolve(file);
-        } else {
-            new Compressor(file, {
-                quality: 0.6,
-                success(result) {
-                    resolve(result);
-                },
-                error(err) {
-                    reject(err.message);
-                }
-            });
-        }
     });
 }
 

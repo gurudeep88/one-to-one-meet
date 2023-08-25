@@ -2,7 +2,6 @@
 
 import { Dropbox, DropboxAuth } from 'dropbox';
 import { getJitsiMeetGlobalNS } from "./index"
-import {DROPBOX_APP_KEY} from "../constants";
 
 /**
  * Executes the oauth flow.
@@ -47,7 +46,9 @@ function getTokenExpiresAtTimestamp(expiresIn) {
  */
 export function authorizeDropbox() {
     const redirectURI= `https://${process.env.REACT_APP_API_SERVICE_HOST_NAME}/oauth.html`;
-    const dropbox = new DropboxAuth({ clientId: DROPBOX_APP_KEY });
+    console.log('DROPBOX_APP_KEY', process.env.REACT_APP_DROPBOX_APP_KEY, redirectURI)
+    const dropbox = new DropboxAuth({ clientId: process.env.REACT_APP_DROPBOX_APP_KEY });
+    console.log('DropboxAuth DROPBOX_APP_KEY', process.env.REACT_APP_DROPBOX_APP_KEY, redirectURI)
 
     return dropbox.getAuthenticationUrl(redirectURI, undefined, 'code', 'offline', undefined, undefined, true)
         .then(authorize)

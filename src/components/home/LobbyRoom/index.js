@@ -1,5 +1,5 @@
 import { Box } from '@material-ui/core'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { getToken, trimSpace } from '../../../utils';
 import { localTrackMutedChanged } from '../../../store/actions/track';
@@ -9,7 +9,7 @@ import SariskaMediaTransport from 'sariska-media-transport/dist/esm/SariskaMedia
 import { addConnection } from '../../../store/actions/connection';
 import { setDisconnected } from '../../../store/actions/layout';
 import { addConference } from '../../../store/actions/conference';
-import { setMeeting, setProfile } from '../../../store/actions/profile';
+import { setMeeting, setProfile, updateProfile } from '../../../store/actions/profile';
 import Meeting from '../../../views/Meeting';
 import JoinTrack from '../JoinTrack';
 
@@ -27,6 +27,8 @@ const LobbyRoom = ({tracks}) => {
 
   const audioTrack = tracks.find(track => track?.isAudioTrack());
   const videoTrack = tracks.find(track => track?.isVideoTrack());
+  const iAmRecorder = window.location.hash.indexOf("iAmRecorder") >= 0;
+  const testMode = window.location.hash.indexOf("testMode") >= 0;
 
   const dispatch = useDispatch();
 
@@ -64,6 +66,12 @@ const LobbyRoom = ({tracks}) => {
   let minHeight = '180px'; 
   let minWidth = minHeight * 16/9;
 
+  useEffect(()=>{
+    dispatch(updateProfile({key: "moderator", value: state.userName === 'admin' ? true : false}));
+    dispatch(updateProfile({key: "name", value: state.userName}));
+    dispatch(updateProfile({key: "meetingTitle", value: state.meetingName}));
+  },[state.userName])
+
 const handleSubmit = async(e) => {
   e.preventDefault();
   if(!state.meetingName){
@@ -82,14 +90,14 @@ const handleSubmit = async(e) => {
     }))
     return;
   }
-
+  
   //get token
-  const token = await getToken(profile, state.userName, state.userName === 'guru' ? true : false);
+  const token = await getToken(profile, state.userName);
   //create connection
   const connection = await new SariskaMediaTransport.JitsiConnection(
     token,
     state.meetingName,
-    false
+    process.env.REACT_APP_ENV === "development" ? true : false
   )
   
   //add connection event listener
@@ -127,7 +135,8 @@ const createConference = async(connection) => {
   //add conference event listener
   conference.addEventListener(SariskaMediaTransport.events.conference.CONFERENCE_JOINED, () =>{ // local user about himself
     dispatch(addConference(conference));
-    dispatch(setProfile(conference.getLocalUser())) //saves local user details to profile state.
+    dispatch(updateProfile({ key: "id", value: conference.getLocalUser()?.id})) //saves local user details to profile state.
+    dispatch(updateProfile({key: "name", value: conference.getLocalUser()?.name}))
     dispatch(setMeeting(state.meetingName));
   });
   conference.addEventListener(
@@ -140,6 +149,15 @@ const createConference = async(connection) => {
   //join the conference
   conference.join();
 }
+if (iAmRecorder && !state.meetingName) {
+  setState(state => ({...state, userName: "recorder"}));
+  setState(state => ({...state, meetingName: state.meetingName}));
+}
+useEffect(() => {
+  if (state.meetingName && (testMode || iAmRecorder)) {
+    handleSubmit();
+  }
+}, [state.meetingName]);
 
   return (
       <Box sx={{mt: 2}}>

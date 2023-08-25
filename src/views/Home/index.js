@@ -10,6 +10,7 @@ const Home = () => {
     const localTracksRedux = useSelector(state => state.localTrack);
     const [localTracks, setLocalTracks] = useState([]);
     const resolution = useSelector(state => state.media?.resolution);
+    const iAmRecorder = window.location.hash.indexOf("iAmRecorder") >= 0;
     const dispatch = useDispatch();
 
     SariskaMediaTransport.initialize();
@@ -22,6 +23,10 @@ const Home = () => {
     }, [])
 
     const createNewLocalTracks = async() => {
+        if (iAmRecorder) {
+            setLocalTracks([]);
+            return;
+        }
         if (localTracksRedux.length > 0)  {
             return;
         }

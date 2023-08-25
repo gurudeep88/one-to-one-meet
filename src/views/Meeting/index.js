@@ -29,6 +29,7 @@ const Meeting = () => {
   const conference = useSelector((state) => state.conference);
   const connection = useSelector((state) => state.connection);
   const layout = useSelector(state => state.layout);
+  const profile = useSelector(state => state.profile);
   const notification = useSelector((state) => state.notification);
   const resolution = useSelector((state) => state.media?.resolution);
   const [dominantSpeakerId, setDominantSpeakerId] = useState(null);
